@@ -1,34 +1,50 @@
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { fetchClient } from "../api/client";
+import { Star, Clock, Calendar, ChevronLeft, PlayCircle } from "lucide-react";
 
 const MovieDetailPage = () => {
   const { id } = useParams();
+  const [movie, setMovie] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  return (
-    <div className="w-full min-h-screen bg-gray-950 text-white pt-24 px-4 flex flex-col items-center">
-      <div className="max-w-2xl text-center space-y-6">
-        <h1 className="text-3xl md:text-5xl font-bold text-red-600">
-            Movie Detail Page
-        </h1>
-        
-        <div className="p-6 bg-gray-900 rounded-xl border border-gray-800 shadow-xl">
-          <p className="text-xl text-gray-300">
-            Movie ID:
-          </p>
-          <p className="text-4xl font-mono font-bold text-yellow-400 mt-2">
-            {id}
-          </p>
-        </div>
+  useEffect(() => {
+    const fetchMovieDetail = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchClient(`/movies/${id}`);
+        setMovie(response);
+      } catch (error) {
+        console.error("Failed to fetch movie details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        <p className="text-gray-400">
-        </p>
+    fetchMovieDetail();
+  }, [id]);
 
-        <Link 
-          to="/" 
-          className="inline-block bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition-colors"
-        >
-          ← Back to Home
-        </Link>
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-950">
+        <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
+    );
+  }
+
+  if (!movie) {
+    return (
+      <div className="text-center text-white pt-20">
+        <h2 className="text-2xl">Movie not found!</h2>
+        <Link to="/" className="text-red-500 hover:underline">Back to home</Link>
+      </div>
+    );
+  }
+
+ 
+  return (
+    <div className="text-white pt-20 px-4">
+       <pre>{JSON.stringify(movie, null, 2)}</pre>
     </div>
   );
 };
