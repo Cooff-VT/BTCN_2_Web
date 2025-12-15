@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { fetchClient } from "../api/client";
 import { Calendar, Trophy, User, Ruler, Film, ChevronLeft } from "lucide-react";
+import Pagination from "../components/ui/Pagination";
 
 const PersonDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [person, setPerson] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 2;
 
   useEffect(() => {
     const fetchPersonDetail = async () => {
@@ -35,6 +39,13 @@ const PersonDetailPage = () => {
 
   const movieList = person.known_for || [];
   
+  const totalPages = Math.ceil(movieList.length / ITEMS_PER_PAGE);
+  
+  const currentMovies = movieList.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -120,49 +131,57 @@ const PersonDetailPage = () => {
             Known For <span className="text-lg font-normal text-white bg-blue-600 px-3 py-0.5 rounded-full shadow-lg shadow-blue-500/30">{movieList.length} Movies</span>
         </h2>
 
-        {movieList.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {movieList.map((movie) => (
-                    <Link 
-                        key={movie.id} 
-                        to={`/movie/${movie.id}`}
-                        className="flex bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 border border-gray-200 dark:border-gray-800 group h-64"
-                    >
-                        <div className="w-44 h-full shrink-0 relative overflow-hidden bg-gray-800">
-                            <img 
-                                src={movie.image} 
-                                alt={movie.title} 
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                onError={(e) => { e.target.src = "https://via.placeholder.com/200x300?text=No+Poster"; }}
-                            />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
-                        </div>
-
-                        <div className="p-6 flex-1 flex flex-col justify-center min-w-0 relative">
-                            <Film className="absolute right-[-10px] bottom-[-10px] w-24 h-24 text-gray-100 dark:text-gray-800 opacity-50 -rotate-12" />
-
-                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-500 truncate mb-3 relative z-10">
-                                {movie.title}
-                            </h3>
-                            
-                            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-4 relative z-10">
-                                <span className="font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded text-sm">
-                                    {movie.year || "N/A"}
-                                </span>
-                                <span className="text-gray-400">•</span>
-                                <span className="uppercase text-xs font-bold tracking-wider">{movie.role || "Actor"}</span>
+        {currentMovies.length > 0 ? (
+            <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {currentMovies.map((movie) => (
+                        <Link 
+                            key={movie.id} 
+                            to={`/movie/${movie.id}`}
+                            className="flex bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 border border-gray-200 dark:border-gray-800 group h-64"
+                        >
+                            <div className="w-44 h-full shrink-0 relative overflow-hidden bg-gray-800">
+                                <img 
+                                    src={movie.image} 
+                                    alt={movie.title} 
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                    onError={(e) => { e.target.src = "https://via.placeholder.com/200x300?text=No+Poster"; }}
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
                             </div>
 
-                            <div className="mt-auto relative z-10">
-                                <div className="text-base text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800/50 p-3 rounded-lg border-l-4 border-gray-400 dark:border-gray-600">
-                                    <span className="block text-xs uppercase text-gray-500 font-bold mb-0.5">Character</span>
-                                    <span className="font-semibold text-lg">{movie.character || "N/A"}</span>
+                            <div className="p-6 flex-1 flex flex-col justify-center min-w-0 relative">
+                                <Film className="absolute right-[-10px] bottom-[-10px] w-24 h-24 text-gray-100 dark:text-gray-800 opacity-50 -rotate-12" />
+
+                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-500 truncate mb-3 relative z-10">
+                                    {movie.title}
+                                </h3>
+                                
+                                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-4 relative z-10">
+                                    <span className="font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded text-sm">
+                                        {movie.year || "N/A"}
+                                    </span>
+                                    <span className="text-gray-400">•</span>
+                                    <span className="uppercase text-xs font-bold tracking-wider">{movie.role || "Actor"}</span>
+                                </div>
+
+                                <div className="mt-auto relative z-10">
+                                    <div className="text-base text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800/50 p-3 rounded-lg border-l-4 border-gray-400 dark:border-gray-600">
+                                        <span className="block text-xs uppercase text-gray-500 font-bold mb-0.5">Character</span>
+                                        <span className="font-semibold text-lg">{movie.character || "N/A"}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Link>
-                ))}
-            </div>
+                        </Link>
+                    ))}
+                </div>
+
+                <Pagination 
+                    currentPage={currentPage} 
+                    totalPages={totalPages} 
+                    onPageChange={(page) => setCurrentPage(page)} 
+                />
+            </>
         ) : (
             <div className="text-center py-20 bg-gray-100 dark:bg-gray-900 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700">
                 <p className="text-xl text-gray-500 font-medium">No filmography information available.</p>
