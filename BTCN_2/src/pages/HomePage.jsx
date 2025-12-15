@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchClient } from "../api/client";
 import HeroSlide from "../components/feature/HeroSlide";
 import MovieList from "../components/feature/MovieList";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const HomePage = () => {
   const [heroMovies, setHeroMovies] = useState([]);
@@ -76,8 +77,8 @@ const HomePage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-[50vh]">
-        <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-20">
+        <LoadingSpinner />
       </div>
     );
   }

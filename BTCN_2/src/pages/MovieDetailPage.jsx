@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchClient } from "../api/client";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User, Trophy, Globe, DollarSign, MessageSquare, AlertTriangle } from "lucide-react";
 
 const ExpandableText = ({ content, maxLength = 300 }) => {
@@ -47,11 +48,7 @@ const MovieDetailPage = () => {
     fetchMovieDetail();
   }, [id]);
 
-  if (loading) return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-950">
-      <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  );
+  if (loading) return <div className="min-h-screen bg-gray-950 pt-20"><LoadingSpinner /></div>;
 
   if (!movie) return null;
 
