@@ -1,7 +1,30 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchClient } from "../api/client";
-import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User, Trophy, Globe, DollarSign, MessageSquare } from "lucide-react";
+import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User, Trophy, Globe, DollarSign, MessageSquare, AlertTriangle } from "lucide-react";
+
+const ExpandableText = ({ content, maxLength = 300 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!content) return null;
+
+  if (content.length <= maxLength) {
+    return <p className="text-gray-400 text-sm leading-relaxed text-justify">{content}</p>;
+  }
+
+  return (
+    <div className="text-gray-400 text-sm leading-relaxed text-justify">
+      {isExpanded ? content : `${content.slice(0, maxLength)}... `}
+      
+      <button 
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="ml-1 text-blue-400 hover:text-blue-300 font-bold hover:underline transition-colors focus:outline-none"
+      >
+        {isExpanded ? "See less" : "See more"}
+      </button>
+    </div>
+  );
+};
 
 const MovieDetailPage = () => {
   const { id } = useParams();
@@ -161,19 +184,26 @@ const MovieDetailPage = () => {
                                     </div>
                                 </div>
 
-                                {review.rate && (
-                                    <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20">
-                                        <Star size={14} fill="currentColor" />
-                                        <span className="font-bold text-sm">{review.rate}</span>
-                                    </div>
-                                )}
-                            </div>
+                                <div className="flex items-center gap-3">
+                                    {review.warning_spoilers && (
+                                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-red-500 bg-red-500/10 px-2 py-1 rounded border border-red-500/20">
+                                            <AlertTriangle size={12} /> Spoiler
+                                        </span>
+                                    )}
 
+                                    {review.rate && (
+                                        <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20">
+                                            <Star size={14} fill="currentColor" />
+                                            <span className="font-bold text-sm">{review.rate}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
                             {review.title && <h5 className="font-bold text-gray-200 mb-2 text-base">{review.title}</h5>}
                             
-                            <div className="text-gray-400 text-sm leading-relaxed text-justify">
-                                {review.content}
-                            </div>
+                            <ExpandableText content={review.content} maxLength={300} />
+
                         </div>
                     ))
                 ) : (
