@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchClient } from "../api/client";
-import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User } from "lucide-react";
+import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User, Trophy, Globe, DollarSign } from "lucide-react";
 
 const MovieDetailPage = () => {
   const { id } = useParams();
@@ -13,7 +13,7 @@ const MovieDetailPage = () => {
       try {
         setLoading(true);
         const response = await fetchClient(`/movies/${id}`);
-        setMovie(response);
+        setMovie(response.data || response);
       } catch (error) {
         console.error("Error loading movie details:", error);
       } finally {
@@ -32,6 +32,11 @@ const MovieDetailPage = () => {
 
   if (!movie) return null;
 
+  const displayRate = movie.rate 
+    || (movie.ratings && movie.ratings.imDb) 
+    || (movie.ratings && movie.ratings.theMovieDb) 
+    || 0;
+
   return (
     <div className="bg-gray-950 min-h-screen text-white pb-20">
       <div className="relative w-full h-[60vh] md:h-[80vh]">
@@ -45,13 +50,13 @@ const MovieDetailPage = () => {
           <div className="max-w-7xl w-full flex flex-col md:flex-row gap-10 items-center md:items-end">
             
             <div className="hidden md:block w-[300px] rounded-xl overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.2)] border border-white/10 transform hover:scale-105 transition-transform duration-500">
-              <img src={movie.image} alt={movie.title} className="w-full h-full object-cover" />
+              <img src={movie.image} alt={movie.full_title} className="w-full h-full object-cover" />
             </div>
 
             <div className="flex-1 space-y-6 text-center md:text-left">
               
               <h1 className="text-4xl md:text-6xl font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                {movie.title}
+                {movie.full_title}
               </h1>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm md:text-base text-gray-300">
@@ -65,7 +70,7 @@ const MovieDetailPage = () => {
                 </div>
                 <div className="flex items-center gap-2 font-bold text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-full border border-yellow-400/20">
                   <Star className="w-5 h-5 fill-current" />
-                  <span>{movie.rate ? Number(movie.rate).toFixed(1) : "N/A"}</span>
+                  <span>{displayRate ? Number(displayRate).toFixed(1) : "N/A"}</span>
                 </div>
               </div>
 
@@ -94,8 +99,8 @@ const MovieDetailPage = () => {
           <section>
             <h2 className="text-2xl font-bold text-red-500 mb-4 border-l-4 border-red-500 pl-3 uppercase">Storyline</h2>
             <div 
-                className="text-gray-300 text-lg leading-relaxed text-justify [&>p]:mb-4" 
-                dangerouslySetInnerHTML={{ __html: movie.plot_full || movie.short_description || "No plot summary available..." }} 
+              className="text-gray-300 text-lg leading-relaxed text-justify [&>p]:mb-4"
+              dangerouslySetInnerHTML={{ __html: movie.plot_full || movie.short_description || "No plot summary available." }}
             />
           </section>
 
@@ -129,27 +134,46 @@ const MovieDetailPage = () => {
           <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
             <h3 className="text-xl font-bold text-white mb-4">Details</h3>
             
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <span className="block text-gray-500 text-sm uppercase font-bold mb-1">Director</span>
                 <div className="flex flex-wrap gap-2">
-                  {movie.directors && movie.directors.map((dir) => (
-                    <span key={dir.id} className="text-white font-medium">{dir.name}</span>
-                  ))}
+                    {movie.directors && movie.directors.map((dir, index) => (
+                        <span key={dir.id} className="text-white font-medium">
+                    {dir.name}
+                    {index < movie.directors.length - 1 && ","}
+                </span>
+                    ))}
                 </div>
               </div>
 
-              <div>
-                <span className="block text-gray-500 text-sm uppercase font-bold mb-1">Awards</span>
-                <p className="text-sm text-gray-400">{movie.awards || "No awards information available."}</p>
-              </div>
+              {movie.countries && (
+                <div>
+                    <span className="flex items-center gap-2 text-gray-500 text-sm uppercase font-bold mb-1">
+                        <Globe size={14} /> Countries
+                    </span>
+                    <span className="text-white">{movie.countries.join(", ")}</span>
+                </div>
+              )}
 
               {movie.box_office && (
                 <div>
-                  <span className="block text-gray-500 text-sm uppercase font-bold mb-1">Box Office</span>
+                  <span className="flex items-center gap-2 text-gray-500 text-sm uppercase font-bold mb-1">
+                     <DollarSign size={14} /> Box Office
+                  </span>
                   <p className="text-green-400 font-bold">{movie.box_office.cumulativeWorldwideGross || "N/A"}</p>
                 </div>
               )}
+
+              <div>
+                <span className="flex items-center gap-2 text-gray-500 text-sm uppercase font-bold mb-1">
+                    <Trophy size={14} /> Awards
+                </span>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                    {movie.awards || "No awards information available."}
+                </p>
+              </div>
+
             </div>
           </div>
         </div>
