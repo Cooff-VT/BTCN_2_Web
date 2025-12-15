@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchClient } from "../api/client";
-import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User, Trophy, Globe, DollarSign } from "lucide-react";
+import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User, Trophy, Globe, DollarSign, MessageSquare } from "lucide-react";
 
 const MovieDetailPage = () => {
   const { id } = useParams();
@@ -50,13 +50,16 @@ const MovieDetailPage = () => {
           <div className="max-w-7xl w-full flex flex-col md:flex-row gap-10 items-center md:items-end">
             
             <div className="hidden md:block w-[300px] rounded-xl overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.2)] border border-white/10 transform hover:scale-105 transition-transform duration-500">
-              <img src={movie.image} alt={movie.full_title} className="w-full h-full object-cover" />
+              <img src={movie.image} alt={movie.title} className="w-full h-full object-cover" />
             </div>
 
             <div className="flex-1 space-y-6 text-center md:text-left">
+              <Link to="/" className="inline-flex items-center text-gray-400 hover:text-white mb-4 transition-colors">
+                <ChevronLeft size={20} /> Back to Home
+              </Link>
               
               <h1 className="text-4xl md:text-6xl font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                {movie.full_title}
+                {movie.title}
               </h1>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm md:text-base text-gray-300">
@@ -95,7 +98,8 @@ const MovieDetailPage = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
         
-        <div className="lg:col-span-2 space-y-10">
+        <div className="lg:col-span-2 space-y-12">
+          
           <section>
             <h2 className="text-2xl font-bold text-red-500 mb-4 border-l-4 border-red-500 pl-3 uppercase">Storyline</h2>
             <div 
@@ -109,34 +113,83 @@ const MovieDetailPage = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {movie.actors && movie.actors.length > 0 ? (
                 movie.actors.slice(0, 8).map((actor) => (
-                <Link 
-                  key={actor.id} 
-                  to={`/person/${actor.id}`} 
-                  className="bg-gray-900 rounded-lg p-3 text-center hover:bg-gray-800 transition-colors group block"
-                >
-                  <div className="w-20 h-20 mx-auto rounded-full overflow-hidden mb-3 border-2 border-gray-700 group-hover:border-red-500 transition-colors">
-                    {actor.image ? (
-                      <img src={actor.image} alt={actor.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                        <User className="text-gray-500" />
-                      </div>
-                    )}
-                  </div>
-                  <h4 className="font-bold text-sm truncate group-hover:text-red-500 transition-colors">{actor.name}</h4>
-                  <p className="text-xs text-gray-500 truncate">{actor.character || "Actor"}</p>
-                </Link>
-              ))
+                  <Link 
+                    key={actor.id} 
+                    to={`/person/${actor.id}`} 
+                    className="bg-gray-900 rounded-lg p-3 text-center hover:bg-gray-800 transition-colors group block"
+                  >
+                    <div className="w-20 h-20 mx-auto rounded-full overflow-hidden mb-3 border-2 border-gray-700 group-hover:border-red-500 transition-colors">
+                      {actor.image ? (
+                        <img src={actor.image} alt={actor.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                          <User className="text-gray-500" />
+                        </div>
+                      )}
+                    </div>
+                    <h4 className="font-bold text-sm truncate group-hover:text-red-500 transition-colors">{actor.name}</h4>
+                    <p className="text-xs text-gray-500 truncate">{actor.character || "Actor"}</p>
+                  </Link>
+                ))
               ) : (
                 <p className="text-gray-500">Cast information not available.</p>
               )}
             </div>
           </section>
+
+          <section>
+             <h2 className="text-2xl font-bold text-red-500 mb-6 border-l-4 border-red-500 pl-3 uppercase flex items-center gap-2">
+                User Reviews 
+                <span className="text-sm font-normal text-gray-500 normal-case bg-gray-900 px-2 py-0.5 rounded-full border border-gray-800">
+                    {movie.reviews ? movie.reviews.length : 0}
+                </span>
+             </h2>
+
+             <div className="space-y-6">
+                {movie.reviews && movie.reviews.length > 0 ? (
+                    movie.reviews.map((review, idx) => (
+                        <div key={idx} className="bg-gray-900/40 p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center font-bold text-gray-300 border border-gray-600 shadow-inner">
+                                            {review.username ? review.username.charAt(0).toUpperCase() : "U"}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-white text-sm">{review.username || "Movie Fan"}</h4>
+                                        <span className="text-xs text-gray-500">{review.date || "Unknown Date"}</span>
+                                    </div>
+                                </div>
+
+                                {review.rate && (
+                                    <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20">
+                                        <Star size={14} fill="currentColor" />
+                                        <span className="font-bold text-sm">{review.rate}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {review.title && <h5 className="font-bold text-gray-200 mb-2 text-base">{review.title}</h5>}
+                            
+                            <div className="text-gray-400 text-sm leading-relaxed text-justify">
+                                {review.content}
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-center py-10 text-gray-500 bg-gray-900/20 rounded-xl border border-dashed border-gray-800">
+                        <MessageSquare className="mx-auto w-10 h-10 mb-3 opacity-30" />
+                        <p>No reviews available yet.</p>
+                    </div>
+                )}
+             </div>
+          </section>
+
         </div>
 
         <div className="space-y-8">
-          <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
-            <h3 className="text-xl font-bold text-white mb-4">Details</h3>
+          <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800 sticky top-24">
+            <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-800 pb-2">Details</h3>
             
             <div className="space-y-5">
               <div>
@@ -144,12 +197,11 @@ const MovieDetailPage = () => {
                 <div className="flex flex-wrap gap-2">
                   {movie.directors && movie.directors.map((dir, index) => (
                     <Link 
-                      key={dir.id} 
-                      to={`/person/${dir.id}`} 
-                      className="text-white font-medium hover:text-red-500 hover:underline transition-colors"
+                        key={dir.id} 
+                        to={`/person/${dir.id}`} 
+                        className="text-white font-medium hover:text-red-500 hover:underline transition-colors"
                     >
-                      {dir.name}
-                      {index < movie.directors.length - 1 && ","}
+                        {dir.name}{index < movie.directors.length - 1 && ","}
                     </Link>
                   ))}
                 </div>
