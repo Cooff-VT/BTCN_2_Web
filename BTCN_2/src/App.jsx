@@ -4,6 +4,7 @@ import MainLayout from "./components/layout/MainLayout";
 import HomePage from "./pages/HomePage";
 import MovieDetailPage from "./pages/MovieDetailPage";
 import SearchPage from "./pages/SearchPage";
+import PersonDetailPage from "./pages/PersonDetailPage";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
             <Route index element={<HomePage />} />
             <Route path="movie/:id" element={<MovieDetailPage />} />
             <Route path="search" element={<SearchPage />} />
+            <Route path="person/:id" element={<PersonDetailPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

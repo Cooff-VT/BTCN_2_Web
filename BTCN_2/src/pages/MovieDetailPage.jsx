@@ -109,20 +109,24 @@ const MovieDetailPage = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {movie.actors && movie.actors.length > 0 ? (
                 movie.actors.slice(0, 8).map((actor) => (
-                  <div key={actor.id} className="bg-gray-900 rounded-lg p-3 text-center hover:bg-gray-800 transition-colors group">
-                    <div className="w-20 h-20 mx-auto rounded-full overflow-hidden mb-3 border-2 border-gray-700 group-hover:border-red-500 transition-colors">
-                      {actor.image ? (
-                        <img src={actor.image} alt={actor.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                          <User className="text-gray-500" />
-                        </div>
-                      )}
-                    </div>
-                    <h4 className="font-bold text-sm truncate">{actor.name}</h4>
-                    <p className="text-xs text-gray-500 truncate">{actor.character || "Actor"}</p>
+                <Link 
+                  key={actor.id} 
+                  to={`/person/${actor.id}`} 
+                  className="bg-gray-900 rounded-lg p-3 text-center hover:bg-gray-800 transition-colors group block"
+                >
+                  <div className="w-20 h-20 mx-auto rounded-full overflow-hidden mb-3 border-2 border-gray-700 group-hover:border-red-500 transition-colors">
+                    {actor.image ? (
+                      <img src={actor.image} alt={actor.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                        <User className="text-gray-500" />
+                      </div>
+                    )}
                   </div>
-                ))
+                  <h4 className="font-bold text-sm truncate group-hover:text-red-500 transition-colors">{actor.name}</h4>
+                  <p className="text-xs text-gray-500 truncate">{actor.character || "Actor"}</p>
+                </Link>
+              ))
               ) : (
                 <p className="text-gray-500">Cast information not available.</p>
               )}
@@ -138,12 +142,16 @@ const MovieDetailPage = () => {
               <div>
                 <span className="block text-gray-500 text-sm uppercase font-bold mb-1">Director</span>
                 <div className="flex flex-wrap gap-2">
-                    {movie.directors && movie.directors.map((dir, index) => (
-                        <span key={dir.id} className="text-white font-medium">
-                    {dir.name}
-                    {index < movie.directors.length - 1 && ","}
-                </span>
-                    ))}
+                  {movie.directors && movie.directors.map((dir, index) => (
+                    <Link 
+                      key={dir.id} 
+                      to={`/person/${dir.id}`} 
+                      className="text-white font-medium hover:text-red-500 hover:underline transition-colors"
+                    >
+                      {dir.name}
+                      {index < movie.directors.length - 1 && ","}
+                    </Link>
+                  ))}
                 </div>
               </div>
 
