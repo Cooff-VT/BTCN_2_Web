@@ -5,11 +5,13 @@ import HomePage from "./pages/HomePage";
 import MovieDetailPage from "./pages/MovieDetailPage";
 import SearchPage from "./pages/SearchPage";
 import PersonDetailPage from "./pages/PersonDetailPage";
+import ScrollToTop from "./components/utils/ScrollToTop";
 
 function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
