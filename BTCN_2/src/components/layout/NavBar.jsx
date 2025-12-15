@@ -7,7 +7,7 @@ const NavBar = () => {
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    if (keyword.trim()) navigate(`/search?query=${keyword}`);
+    if (keyword.trim()) navigate(`/search?title=${keyword}`);
   };
 
   return (
