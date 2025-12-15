@@ -5,36 +5,63 @@ import MovieCard from "../components/feature/MovieCard";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
-  const title = searchParams.get("title");
+
+  const titleQuery = searchParams.get("title");
+  const personQuery = searchParams.get("person");
+  const omniQuery = searchParams.get("q");
+
+  const displayKeyword = titleQuery || personQuery || omniQuery;
 
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchSearchResults = async () => {
-      if (!title) return;
+      if (!titleQuery && !personQuery && !omniQuery) return;
 
       try {
         setLoading(true);
-        const response = await fetchClient(`/movies/search?title=${title}`);
-        setMovies(response.data || response || []);
+        let endpoint = "";
+
+        if (titleQuery) {
+          endpoint = `/movies/search?title=${titleQuery}&limit=50`;
+        } else if (personQuery) {
+          endpoint = `/movies/search?person=${personQuery}&limit=50`;
+        } else if (omniQuery) {
+          endpoint = `/movies/search?q=${omniQuery}&limit=50`;
+        }
+
+        console.log("Calling API endpoint:", endpoint);
+        const response = await fetchClient(endpoint);
+        
+        console.log("Search Response:", response);
+
+        const rawData = response.data || response || [];
+        
+        const validMovies = Array.isArray(rawData) 
+          ? rawData.filter(m => m && m.id && m.title) 
+          : [];
+
+        setMovies(validMovies);
+
       } catch (error) {
         console.error("Search error:", error);
+        setMovies([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchSearchResults();
-  }, [title]);
+  }, [titleQuery, personQuery, omniQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white pt-10 px-4 md:px-12 pb-20 transition-colors duration-300">
       
-      {/* Tiêu đề trang */}
-      <div className="max-w-6xl mx-auto mb-8">
+      <div className="max-w-6xl mx-auto mb-10">
         <h1 className="text-2xl md:text-3xl font-bold border-l-4 border-blue-500 pl-4">
-          Kết quả tìm kiếm: <span className="text-blue-600 dark:text-blue-400">"{title}"</span>
+          {personQuery ? "Phim của diễn viên/đạo diễn: " : "Kết quả tìm kiếm: "}
+          <span className="text-blue-600 dark:text-blue-400">"{displayKeyword}"</span>
         </h1>
       </div>
 
@@ -45,16 +72,9 @@ const SearchPage = () => {
       ) : (
         <div className="max-w-6xl mx-auto">
           {movies.length > 0 ? (
-             /* CẤU HÌNH CARDVIEW THEO YÊU CẦU:
-                - grid: Dạng lưới
-                - grid-cols-2: Điện thoại hiện 2 phim/hàng (cho đỡ bé quá)
-                - lg:grid-cols-3: Máy tính/Tablet hiện ĐÚNG 3 phim/hàng (Chuẩn yêu cầu thầy)
-                - gap-8: Khoảng cách giữa các phim rộng rãi, thoáng mắt
-             */
-             <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
+             <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-10 p-4">
                 {movies.map(movie => (
                     <div key={movie.id} className="w-full">
-                        {/* Đây chính là CardView (Thẻ phim) */}
                         <MovieCard movie={movie} />
                     </div>
                 ))}

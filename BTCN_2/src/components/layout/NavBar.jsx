@@ -1,13 +1,20 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, Search } from "lucide-react";
+import { Home, Search, Filter } from "lucide-react";
 
 const NavBar = () => {
   const [keyword, setKeyword] = useState("");
+  const [searchType, setSearchType] = useState("title");
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    if (keyword.trim()) navigate(`/search?title=${keyword}`);
+    if (keyword.trim()) {
+      if (searchType === "title") {
+        navigate(`/search?title=${keyword}`);
+      } else {
+        navigate(`/search?person=${keyword}`);
+      }
+    }
   };
 
   return (
@@ -25,10 +32,30 @@ const NavBar = () => {
         </Link>
 
         <div className="flex gap-2">
+          {/* 1. THÊM DROPDOWN CHỌN LOẠI TÌM KIẾM */}
+          <div className="relative group">
+            <select
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value)}
+              className="h-full px-3 py-1.5 rounded-lg border appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300 font-medium
+                bg-white text-gray-700 border-blue-200
+                dark:bg-gray-700 dark:text-white dark:border-gray-600
+              "
+            >
+              <option value="title">Phim</option>
+              <option value="person">Người</option>
+            </select>
+            {/* Icon mũi tên giả để đẹp hơn (tùy chọn) */}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 dark:text-gray-400">
+               <Filter size={12} />
+            </div>
+          </div>
+
+          {/* 2. Ô INPUT (Giữ nguyên) */}
           <input
             type="text"
-            placeholder="Search movies..."
-            className="px-4 py-1.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300
+            placeholder={searchType === "title" ? "Nhập tên phim..." : "Nhập tên diễn viên..."}
+            className="w-40 sm:w-64 px-4 py-1.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300
               bg-white text-gray-900 border-blue-200
               dark:bg-gray-700 dark:text-white dark:border-gray-600
             "
