@@ -6,33 +6,29 @@ import MovieList from "../components/feature/MovieList";
 const HomePage = () => {
   const [heroMovies, setHeroMovies] = useState([]);
   const [popularMovies, setPopularMovies] = useState([]); 
+  const [topRatedMovies, setTopRatedMovies] = useState([]);
+  
+  const [popularPage, setPopularPage] = useState(1);
+  const [topRatedPage, setTopRatedPage] = useState(1);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchHomeData = async () => {
+    const fetchInitialData = async () => {
       try {
         setLoading(true);
         
-        // Vì mỗi trang chỉ có 3 phim, ta cần gọi 10 trang để được 30 phim
-        const promises = [];
-        for (let page = 1; page <= 10; page++) {
-            promises.push(fetchClient(`/movies/most-popular?page=${page}`));
-        }
-        
-        // Chạy song song tất cả các request để tiết kiệm thời gian
-        const responses = await Promise.all(promises);
+        const [popRes, topRes] = await Promise.all([
+            fetchClient('/movies/most-popular?page=1'),
+            fetchClient('/movies/top-rated?page=1')
+        ]);
 
-        // Gộp tất cả dữ liệu lại thành 1 mảng duy nhất
-        // flatMap giúp làm phẳng mảng (gộp các mảng con thành 1 mảng lớn)
-        const allMovies = responses.flatMap(res => res.data || []);
-        
-        console.log("Tổng số phim lấy được:", allMovies.length);
+        const popData = popRes.data || [];
+        const topData = topRes.data || [];
 
-        // 1. Hero Slide: Lấy 5 phim đầu
-        setHeroMovies(allMovies.slice(0, 5));
-
-        // 2. Danh sách Popular: LẤY TOÀN BỘ (như ý bạn yêu cầu)
-        setPopularMovies(allMovies);
+        setHeroMovies(popData.slice(0, 5));
+        setPopularMovies(popData);
+        setTopRatedMovies(topData);
 
       } catch (error) {
         console.error("Lỗi tải trang chủ:", error);
@@ -41,8 +37,42 @@ const HomePage = () => {
       }
     };
 
-    fetchHomeData();
+    fetchInitialData();
   }, []);
+
+  const loadMorePopular = async () => {
+    try {
+      const nextPage = popularPage + 1;
+      console.log(`Đang tải thêm Popular trang ${nextPage}...`);
+      
+      const response = await fetchClient(`/movies/most-popular?page=${nextPage}`);
+      const newMovies = response.data || [];
+
+      if (newMovies.length > 0) {
+        setPopularMovies(prev => [...prev, ...newMovies]);
+        setPopularPage(nextPage);
+      }
+    } catch (error) {
+      console.error("Lỗi tải thêm popular:", error);
+    }
+  };
+
+  const loadMoreTopRated = async () => {
+    try {
+      const nextPage = topRatedPage + 1;
+      console.log(`Đang tải thêm Top Rated trang ${nextPage}...`);
+
+      const response = await fetchClient(`/movies/top-rated?page=${nextPage}`);
+      const newMovies = response.data || [];
+
+      if (newMovies.length > 0) {
+        setTopRatedMovies(prev => [...prev, ...newMovies]);
+        setTopRatedPage(nextPage);
+      }
+    } catch (error) {
+      console.error("Lỗi tải thêm top rated:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -59,7 +89,19 @@ const HomePage = () => {
       </section>
 
       <section>
-        <MovieList title="Most Popular Movies" movies={popularMovies} />
+        <MovieList 
+          title="Most Popular Movies" 
+          movies={popularMovies} 
+          onLoadMore={loadMorePopular} 
+        />
+      </section>
+
+      <section>
+        <MovieList 
+          title="Top Rated Movies" 
+          movies={topRatedMovies} 
+          onLoadMore={loadMoreTopRated}
+        />
       </section>
 
       <div className="h-10"></div> 

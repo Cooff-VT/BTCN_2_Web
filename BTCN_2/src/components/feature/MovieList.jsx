@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import MovieCard from "./MovieCard";
 
-const MovieList = ({ title, movies }) => {
+const MovieList = ({ title, movies, onLoadMore }) => {
   const sliderRef = useRef(null);
 
   const scroll = (direction) => {
@@ -10,6 +10,12 @@ const MovieList = ({ title, movies }) => {
     if (current) {
       const scrollAmount = direction === "left" ? -current.clientWidth : current.clientWidth;
       current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+
+      if (direction === "right" && onLoadMore) {
+        if (current.scrollLeft + current.clientWidth >= current.scrollWidth - 200) {
+           onLoadMore(); 
+        }
+      }
     }
   };
 
