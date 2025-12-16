@@ -15,11 +15,18 @@ export const AuthProvider = ({ children }) => {
         setAuthToken(token);
         try {
           const res = await fetchClient('/users/profile');
-          setUser(res.data || res);
-          setIsAuthenticated(true);
+          if (res && (res.username || res.data?.username)) {
+              setUser(res.data || res);
+              setIsAuthenticated(true);
+          } else {
+              throw new Error("Invalid token data");
+          }
         } catch (error) {
-          console.error("Token expired or invalid", error);
-          logout();
+          console.error("Session expired or invalid token:", error);
+          removeAuthToken();
+          localStorage.removeItem('authToken');
+          setUser(null);
+          setIsAuthenticated(false);
         }
       }
       setLoading(false);
@@ -38,6 +45,8 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         setAuthToken(token);
         setIsAuthenticated(true);
+        localStorage.setItem('authToken', token);
+
         const profileRes = await fetchClient('/users/profile');
         setUser(profileRes.data || profileRes);
         return { success: true };
@@ -67,6 +76,7 @@ export const AuthProvider = ({ children }) => {
         console.warn("Logout API failed", error);
     } finally {
         removeAuthToken();
+        localStorage.removeItem('authToken');
         setUser(null);
         setIsAuthenticated(false);
     }
