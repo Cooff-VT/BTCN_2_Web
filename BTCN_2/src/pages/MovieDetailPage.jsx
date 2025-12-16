@@ -54,7 +54,7 @@ const MovieDetailPage = () => {
 
         if (isAuthenticated) {
             try {
-                const favResponse = await fetchClient('/users/favorites'); //
+                const favResponse = await fetchClient('/users/favorites');
                 const favList = favResponse.data || favResponse || [];
                 const isFav = favList.some(m => m.id.toString() === id.toString());
                 setIsFavorite(isFav);
@@ -119,12 +119,23 @@ const MovieDetailPage = () => {
   return (
     <div className="bg-gray-950 min-h-screen text-white pb-20">
       <div className="relative w-full h-[60vh] md:h-[80vh]">
+        {/* BACKGROUND LAYER */}
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-30 blur-sm"
           style={{ backgroundImage: `url(${movie.image})` }}
         ></div>
         <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/60 to-transparent"></div>
 
+        {/* --- NÚT BACK (GÓC TRÊN BÊN PHẢI) --- */}
+        <button 
+            onClick={() => navigate(-1)} 
+            className="absolute top-4 right-4 md:top-8 md:right-8 z-20 flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-sm border border-white/10 transition-all group shadow-lg"
+        >
+            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" /> 
+            Back
+        </button>
+
+        {/* CONTENT */}
         <div className="absolute inset-0 flex items-end md:items-center justify-center px-4 md:px-12 pb-10">
           <div className="max-w-7xl w-full flex flex-col md:flex-row gap-10 items-center md:items-end">
             
@@ -133,9 +144,7 @@ const MovieDetailPage = () => {
             </div>
 
             <div className="flex-1 space-y-6 text-center md:text-left">
-              <Link to="/" className="inline-flex items-center text-gray-400 hover:text-white mb-4 transition-colors">
-                <ChevronLeft size={20} /> Back to Home
-              </Link>
+              {/* (Đã xóa nút back cũ ở đây) */}
               
               <h1 className="text-4xl md:text-6xl font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
                 {movie.full_title}
@@ -299,7 +308,11 @@ const MovieDetailPage = () => {
                 <span className="block text-gray-500 text-sm uppercase font-bold mb-1">Director</span>
                 <div className="flex flex-wrap gap-2">
                   {movie.directors && movie.directors.map((dir, index) => (
-                    <Link key={dir.id} to={`/person/${dir.id}`} className="text-white font-medium hover:text-red-500 hover:underline transition-colors">
+                    <Link 
+                        key={dir.id} 
+                        to={`/person/${dir.id}`} 
+                        className="text-white font-medium hover:text-red-500 hover:underline transition-colors"
+                    >
                         {dir.name}{index < movie.directors.length - 1 && ","}
                     </Link>
                   ))}
