@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchClient } from "../api/client";
-import MovieCard from "../components/feature/MovieCard";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
-import { HeartOff, Film } from "lucide-react";
+import { HeartOff, Film, Star, Calendar } from "lucide-react";
 
 const FavoritesPage = () => {
   const [movies, setMovies] = useState([]);
@@ -17,7 +16,9 @@ const FavoritesPage = () => {
     try {
       setLoading(true);
       const response = await fetchClient('/users/favorites'); //
-      setMovies(response.data || response || []);
+      const data = response.data || response || [];
+      
+      setMovies(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching favorites:", error);
     } finally {
@@ -28,11 +29,14 @@ const FavoritesPage = () => {
   const handleRemove = async (movieId) => {
     if (!window.confirm("Remove this movie from favorites?")) return;
     
+    const previousMovies = [...movies];
+    setMovies(prev => prev.filter(m => m.id !== movieId));
+
     try {
-        await fetchClient(`/users/favorites/${movieId}`, { method: 'DELETE' }); //
-        setMovies(prev => prev.filter(m => m.id !== movieId));
+        await fetchClient(`/users/favorites/${movieId}`, { method: 'DELETE' });
     } catch (error) {
         alert("Failed to remove movie");
+        setMovies(previousMovies);
     }
   };
 
@@ -43,34 +47,58 @@ const FavoritesPage = () => {
       <div className="max-w-7xl mx-auto">
         
         <div className="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-gray-200 dark:border-gray-800 pb-6 gap-4">
-            <h1 className="text-3xl font-bold border-l-4 border-red-500 pl-4">
+            <h1 className="text-3xl font-bold border-l-4 border-red-500 pl-4 flex items-center gap-3">
               My Favorite Movies
-              <span className="ml-3 text-lg font-normal text-gray-500 bg-gray-200 dark:bg-gray-800 px-3 py-1 rounded-full">
+              <span className="text-lg font-normal text-white bg-red-600 px-3 py-1 rounded-full shadow-md">
                 {movies.length}
               </span>
             </h1>
             
-            <Link to="/profile" className="text-blue-500 hover:underline">
+            <Link to="/profile" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition font-medium">
                 &larr; Back to Profile
             </Link>
         </div>
 
         {movies.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {movies.map((movie) => (
-              <div key={movie.id} className="relative group">
-                <MovieCard movie={movie} />
+              <div key={movie.id} className="group relative bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-800 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+                
+                <Link to={`/movie/${movie.id}`} className="block relative aspect-[2/3] overflow-hidden bg-gray-800">
+                    <img 
+                        src= {movie.image_url}
+                        alt={movie.title || "Movie Poster"} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                            e.target.onerror = null; 
+                        }}
+                    />
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                </Link>
+
+                <div className="absolute bottom-0 inset-x-0 p-4 text-white">
+                    <h3 className="font-bold text-lg truncate mb-1 text-shadow-sm">{movie.title || "Unknown Title"}</h3>
+                    
+                    <div className="flex items-center justify-between text-xs text-gray-300">
+                        <span className="flex items-center gap-1">
+                            <Calendar size={12} className="text-red-500" /> 
+                            {movie.release_year || "N/A"}
+                        </span>
+                    </div>
+                </div>
                 
                 <button 
                     onClick={(e) => {
                         e.preventDefault();
                         handleRemove(movie.id);
                     }}
-                    className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-700 z-10"
+                    className="absolute top-2 right-2 p-2 bg-red-600/90 hover:bg-red-600 text-white rounded-full shadow-lg transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-20"
                     title="Remove from favorites"
                 >
                     <HeartOff size={18} />
                 </button>
+
               </div>
             ))}
           </div>
@@ -79,7 +107,7 @@ const FavoritesPage = () => {
             <Film className="mx-auto w-16 h-16 text-gray-300 mb-4" />
             <h3 className="text-xl font-bold text-gray-500">Your list is empty</h3>
             <p className="text-gray-400 mt-2">Go find some awesome movies to add!</p>
-            <Link to="/" className="inline-block mt-6 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+            <Link to="/" className="inline-block mt-6 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30">
                 Explore Movies
             </Link>
           </div>

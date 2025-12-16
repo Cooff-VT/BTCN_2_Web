@@ -8,26 +8,27 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserProfile = async () => {
+    try {
+      const res = await fetchClient('/users/profile'); //
+      if (res && (res.username || res.data?.username)) {
+          setUser(res.data || res);
+          setIsAuthenticated(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+      removeAuthToken();
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('authToken');
       if (token) {
         setAuthToken(token);
-        try {
-          const res = await fetchClient('/users/profile');
-          if (res && (res.username || res.data?.username)) {
-              setUser(res.data || res);
-              setIsAuthenticated(true);
-          } else {
-              throw new Error("Invalid token data");
-          }
-        } catch (error) {
-          console.error("Session expired or invalid token:", error);
-          removeAuthToken();
-          localStorage.removeItem('authToken');
-          setUser(null);
-          setIsAuthenticated(false);
-        }
+        await fetchUserProfile();
       }
       setLoading(false);
     };
@@ -44,11 +45,9 @@ export const AuthProvider = ({ children }) => {
       const token = res.token || res.accessToken;
       if (token) {
         setAuthToken(token);
-        setIsAuthenticated(true);
         localStorage.setItem('authToken', token);
-
-        const profileRes = await fetchClient('/users/profile');
-        setUser(profileRes.data || profileRes);
+        setIsAuthenticated(true);
+        await fetchUserProfile();
         return { success: true };
       }
       return { success: false, message: "No token received" };
@@ -72,9 +71,8 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
         await fetchClient('/users/logout', { method: 'POST' });
-    } catch (error) {
-        console.warn("Logout API failed", error);
-    } finally {
+    } catch (error) { console.warn("Logout failed", error); } 
+    finally {
         removeAuthToken();
         localStorage.removeItem('authToken');
         setUser(null);
@@ -83,7 +81,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, register, logout, fetchUserProfile }}>
       {children}
     </AuthContext.Provider>
   );
