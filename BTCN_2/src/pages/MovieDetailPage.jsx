@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef } from "react"
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { fetchClient } from "../api/client";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import Pagination from "../components/ui/Pagination";
-import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User, Trophy, Globe, DollarSign, MessageSquare, AlertTriangle } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User, Trophy, Globe, DollarSign, MessageSquare, AlertTriangle, Heart } from "lucide-react";
 
 const ExpandableText = ({ content, maxLength = 300 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -17,7 +18,6 @@ const ExpandableText = ({ content, maxLength = 300 }) => {
   return (
     <div className="text-gray-400 text-sm leading-relaxed text-justify">
       {isExpanded ? content : `${content.slice(0, maxLength)}... `}
-      
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
         className="ml-1 text-blue-400 hover:text-blue-300 font-bold hover:underline transition-colors focus:outline-none"
@@ -30,12 +30,18 @@ const ExpandableText = ({ content, maxLength = 300 }) => {
 
 const MovieDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
+
   const [reviewPage, setReviewPage] = useState(1);
   const REVIEWS_PER_PAGE = 2;
-
   const reviewsRef = useRef(null);
 
   useEffect(() => {
@@ -45,6 +51,17 @@ const MovieDetailPage = () => {
         const response = await fetchClient(`/movies/${id}`);
         setMovie(response.data || response);
         setReviewPage(1);
+
+        if (isAuthenticated) {
+            try {
+                const favResponse = await fetchClient('/users/favorites'); //
+                const favList = favResponse.data || favResponse || [];
+                const isFav = favList.some(m => m.id.toString() === id.toString());
+                setIsFavorite(isFav);
+            } catch (err) {
+                console.error("Failed to check favorites status", err);
+            }
+        }
       } catch (error) {
         console.error("Error loading movie details:", error);
       } finally {
@@ -53,7 +70,29 @@ const MovieDetailPage = () => {
     };
 
     fetchMovieDetail();
-  }, [id]);
+  }, [id, isAuthenticated]);
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+        navigate('/login', { state: { from: location } });
+        return;
+    }
+
+    try {
+        setFavLoading(true);
+        if (isFavorite) {
+            await fetchClient(`/users/favorites/${id}`, { method: 'DELETE' });
+            setIsFavorite(false);
+        } else {
+            await fetchClient(`/users/favorites/${id}`, { method: 'POST' });
+            setIsFavorite(true);
+        }
+    } catch (error) {
+        alert("Action failed: " + (error.message || "Unknown error"));
+    } finally {
+        setFavLoading(false);
+    }
+  };
 
   const handleReviewPageChange = (newPage) => {
     setReviewPage(newPage);
@@ -63,7 +102,6 @@ const MovieDetailPage = () => {
   };
 
   if (loading) return <div className="min-h-screen bg-gray-950 pt-20"><LoadingSpinner /></div>;
-
   if (!movie) return null;
 
   const allReviews = movie.reviews || [];
@@ -126,10 +164,24 @@ const MovieDetailPage = () => {
                 ))}
               </div>
 
-              <div className="pt-4">
-                <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-bold text-lg flex items-center gap-3 transition-transform hover:scale-105 shadow-lg mx-auto md:mx-0">
+              <div className="pt-4 flex flex-col md:flex-row items-center gap-4 justify-center md:justify-start">
+                <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-bold text-lg flex items-center gap-3 transition-transform hover:scale-105 shadow-lg">
                   <PlayCircle size={28} fill="white" className="text-red-600" />
                   Watch Now
+                </button>
+
+                <button 
+                    onClick={handleToggleFavorite}
+                    disabled={favLoading}
+                    className={`px-8 py-4 rounded-full font-bold text-lg flex items-center gap-3 transition-all border-2 
+                        ${isFavorite 
+                            ? "bg-white text-red-600 border-white hover:bg-gray-100" 
+                            : "bg-transparent text-white border-white/30 hover:bg-white/10 hover:border-white"
+                        }
+                    `}
+                >
+                  <Heart size={28} fill={isFavorite ? "currentColor" : "none"} className={favLoading ? "animate-pulse" : ""} />
+                  {isFavorite ? "Favorited" : "Add to Favorites"}
                 </button>
               </div>
             </div>
@@ -191,7 +243,6 @@ const MovieDetailPage = () => {
                     <>
                         {currentReviews.map((review, idx) => (
                             <div key={idx} className="bg-gray-900/40 p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
-
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center font-bold text-gray-300 border border-gray-600 shadow-inner">
@@ -209,7 +260,6 @@ const MovieDetailPage = () => {
                                                 <AlertTriangle size={12} /> Spoiler
                                             </span>
                                         )}
-
                                         {review.rate && (
                                             <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20">
                                                 <Star size={14} fill="currentColor" />
@@ -218,11 +268,8 @@ const MovieDetailPage = () => {
                                         )}
                                     </div>
                                 </div>
-                                
                                 {review.title && <h5 className="font-bold text-gray-200 mb-2 text-base">{review.title}</h5>}
-                                
                                 <ExpandableText content={review.content} maxLength={300} />
-
                             </div>
                         ))}
 
@@ -252,11 +299,7 @@ const MovieDetailPage = () => {
                 <span className="block text-gray-500 text-sm uppercase font-bold mb-1">Director</span>
                 <div className="flex flex-wrap gap-2">
                   {movie.directors && movie.directors.map((dir, index) => (
-                    <Link 
-                        key={dir.id} 
-                        to={`/person/${dir.id}`} 
-                        className="text-white font-medium hover:text-red-500 hover:underline transition-colors"
-                    >
+                    <Link key={dir.id} to={`/person/${dir.id}`} className="text-white font-medium hover:text-red-500 hover:underline transition-colors">
                         {dir.name}{index < movie.directors.length - 1 && ","}
                     </Link>
                   ))}
@@ -265,29 +308,21 @@ const MovieDetailPage = () => {
 
               {movie.countries && (
                 <div>
-                    <span className="flex items-center gap-2 text-gray-500 text-sm uppercase font-bold mb-1">
-                        <Globe size={14} /> Countries
-                    </span>
+                    <span className="flex items-center gap-2 text-gray-500 text-sm uppercase font-bold mb-1"><Globe size={14} /> Countries</span>
                     <span className="text-white">{movie.countries.join(", ")}</span>
                 </div>
               )}
 
               {movie.box_office && (
                 <div>
-                  <span className="flex items-center gap-2 text-gray-500 text-sm uppercase font-bold mb-1">
-                     <DollarSign size={14} /> Box Office
-                  </span>
+                  <span className="flex items-center gap-2 text-gray-500 text-sm uppercase font-bold mb-1"><DollarSign size={14} /> Box Office</span>
                   <p className="text-green-400 font-bold">{movie.box_office.cumulativeWorldwideGross || "N/A"}</p>
                 </div>
               )}
 
               <div>
-                <span className="flex items-center gap-2 text-gray-500 text-sm uppercase font-bold mb-1">
-                    <Trophy size={14} /> Awards
-                </span>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                    {movie.awards || "No awards information available."}
-                </p>
+                <span className="flex items-center gap-2 text-gray-500 text-sm uppercase font-bold mb-1"><Trophy size={14} /> Awards</span>
+                <p className="text-sm text-gray-400 leading-relaxed">{movie.awards || "No awards information available."}</p>
               </div>
 
             </div>
