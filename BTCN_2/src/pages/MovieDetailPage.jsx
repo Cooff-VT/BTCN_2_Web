@@ -91,7 +91,7 @@ const MovieDetailPage = () => {
           <div className="max-w-7xl w-full flex flex-col md:flex-row gap-10 items-center md:items-end">
             
             <div className="hidden md:block w-[300px] rounded-xl overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.2)] border border-white/10 transform hover:scale-105 transition-transform duration-500">
-              <img src={movie.image} alt={movie.title} className="w-full h-full object-cover" />
+              <img src={movie.image} alt={movie.full_title} className="w-full h-full object-cover" />
             </div>
 
             <div className="flex-1 space-y-6 text-center md:text-left">
@@ -100,7 +100,7 @@ const MovieDetailPage = () => {
               </Link>
               
               <h1 className="text-4xl md:text-6xl font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                {movie.title}
+                {movie.full_title}
               </h1>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm md:text-base text-gray-300">

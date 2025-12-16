@@ -5,12 +5,16 @@ import HomePage from "./pages/HomePage";
 import MovieDetailPage from "./pages/MovieDetailPage";
 import SearchPage from "./pages/SearchPage";
 import PersonDetailPage from "./pages/PersonDetailPage";
+import { AuthProvider } from "./context/AuthContext";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import ScrollToTop from "./components/utils/ScrollToTop";
 
 function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
+      <AuthProvider>
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<MainLayout />}>
@@ -18,8 +22,11 @@ function App() {
             <Route path="movie/:id" element={<MovieDetailPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="person/:id" element={<PersonDetailPage />} />
+            <Route path="login" element={<LoginPage />} />
+            <Route path="register" element={<RegisterPage />} />
           </Route>
         </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
   );
