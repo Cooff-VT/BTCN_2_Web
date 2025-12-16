@@ -74,9 +74,9 @@ const SearchPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white pt-10 px-4 md:px-12 pb-20 transition-colors duration-300">
       <div className="max-w-6xl mx-auto mb-10">
         <h1 className="text-2xl md:text-3xl font-bold border-l-4 border-blue-500 pl-4">
-          {personQuery ? "Phim của diễn viên/đạo diễn: " : "Kết quả tìm kiếm: "}
+          {personQuery ? "Movies for: " : "Results for: "}
           <span className="text-blue-600 dark:text-blue-400">"{displayKeyword}"</span>
-          <span className="ml-3 text-sm font-normal text-gray-500">({allMovies.length} kết quả)</span>
+          <span className="ml-3 text-sm font-normal text-gray-500">({allMovies.length} Result)</span>
         </h1>
       </div>
 
@@ -102,7 +102,7 @@ const SearchPage = () => {
              </>
           ) : (
              <div className="text-center py-20 text-gray-500 dark:text-gray-400">
-                <p className="text-xl font-medium">Không tìm thấy phim nào.</p>
+                <p className="text-xl font-medium">Not found.</p>
              </div>
           )}
         </div>

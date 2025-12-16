@@ -32,7 +32,7 @@ const HomePage = () => {
         setTopRatedMovies(topData);
 
       } catch (error) {
-        console.error("Lỗi tải trang chủ:", error);
+        console.error("Error to load Homepage:", error);
       } finally {
         setLoading(false);
       }
@@ -44,7 +44,7 @@ const HomePage = () => {
   const loadMorePopular = async () => {
     try {
       const nextPage = popularPage + 1;
-      console.log(`Đang tải thêm Popular trang ${nextPage}...`);
+      console.log(`Loanding more ${nextPage}...`);
       
       const response = await fetchClient(`/movies/most-popular?page=${nextPage}`);
       const newMovies = response.data || [];
@@ -54,14 +54,14 @@ const HomePage = () => {
         setPopularPage(nextPage);
       }
     } catch (error) {
-      console.error("Lỗi tải thêm popular:", error);
+      console.error("Error loading more popular:", error);
     }
   };
 
   const loadMoreTopRated = async () => {
     try {
       const nextPage = topRatedPage + 1;
-      console.log(`Đang tải thêm Top Rated trang ${nextPage}...`);
+      console.log(`Loanding more Top Rated page ${nextPage}...`);
 
       const response = await fetchClient(`/movies/top-rated?page=${nextPage}`);
       const newMovies = response.data || [];
@@ -71,7 +71,7 @@ const HomePage = () => {
         setTopRatedPage(nextPage);
       }
     } catch (error) {
-      console.error("Lỗi tải thêm top rated:", error);
+      console.error("Error loading more top rated:", error);
     }
   };
 
