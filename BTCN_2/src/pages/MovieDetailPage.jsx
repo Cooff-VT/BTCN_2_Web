@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"
 import { useParams, Link } from "react-router-dom";
 import { fetchClient } from "../api/client";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
+import Pagination from "../components/ui/Pagination";
 import { Star, Clock, Calendar, ChevronLeft, PlayCircle, User, Trophy, Globe, DollarSign, MessageSquare, AlertTriangle } from "lucide-react";
 
 const ExpandableText = ({ content, maxLength = 300 }) => {
@@ -32,12 +33,18 @@ const MovieDetailPage = () => {
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [reviewPage, setReviewPage] = useState(1);
+  const REVIEWS_PER_PAGE = 2;
+
+  const reviewsRef = useRef(null);
+
   useEffect(() => {
     const fetchMovieDetail = async () => {
       try {
         setLoading(true);
         const response = await fetchClient(`/movies/${id}`);
         setMovie(response.data || response);
+        setReviewPage(1);
       } catch (error) {
         console.error("Error loading movie details:", error);
       } finally {
@@ -48,9 +55,23 @@ const MovieDetailPage = () => {
     fetchMovieDetail();
   }, [id]);
 
+  const handleReviewPageChange = (newPage) => {
+    setReviewPage(newPage);
+    if (reviewsRef.current) {
+        reviewsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   if (loading) return <div className="min-h-screen bg-gray-950 pt-20"><LoadingSpinner /></div>;
 
   if (!movie) return null;
+
+  const allReviews = movie.reviews || [];
+  const totalReviewPages = Math.ceil(allReviews.length / REVIEWS_PER_PAGE);
+  const currentReviews = allReviews.slice(
+    (reviewPage - 1) * REVIEWS_PER_PAGE,
+    reviewPage * REVIEWS_PER_PAGE
+  );
 
   const displayRate = movie.rate 
     || (movie.ratings && movie.ratings.imDb) 
@@ -157,52 +178,60 @@ const MovieDetailPage = () => {
             </div>
           </section>
 
-          <section>
+          <section ref={reviewsRef}>
              <h2 className="text-2xl font-bold text-red-500 mb-6 border-l-4 border-red-500 pl-3 uppercase flex items-center gap-2">
                 User Reviews 
                 <span className="text-sm font-normal text-gray-500 normal-case bg-gray-900 px-2 py-0.5 rounded-full border border-gray-800">
-                    {movie.reviews ? movie.reviews.length : 0}
+                    {allReviews.length}
                 </span>
              </h2>
 
              <div className="space-y-6">
-                {movie.reviews && movie.reviews.length > 0 ? (
-                    movie.reviews.map((review, idx) => (
-                        <div key={idx} className="bg-gray-900/40 p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                {currentReviews.length > 0 ? (
+                    <>
+                        {currentReviews.map((review, idx) => (
+                            <div key={idx} className="bg-gray-900/40 p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
 
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center font-bold text-gray-300 border border-gray-600 shadow-inner">
-                                            {review.username ? review.username.charAt(0).toUpperCase() : "U"}
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-white text-sm">{review.username || "Movie Fan"}</h4>
-                                        <span className="text-xs text-gray-500">{review.date || "Unknown Date"}</span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-3">
-                                    {review.warning_spoilers && (
-                                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-red-500 bg-red-500/10 px-2 py-1 rounded border border-red-500/20">
-                                            <AlertTriangle size={12} /> Spoiler
-                                        </span>
-                                    )}
-
-                                    {review.rate && (
-                                        <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20">
-                                            <Star size={14} fill="currentColor" />
-                                            <span className="font-bold text-sm">{review.rate}</span>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center font-bold text-gray-300 border border-gray-600 shadow-inner">
+                                                {review.username ? review.username.charAt(0).toUpperCase() : "U"}
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            {review.title && <h5 className="font-bold text-gray-200 mb-2 text-base">{review.title}</h5>}
-                            
-                            <ExpandableText content={review.content} maxLength={300} />
+                                        <div>
+                                            <h4 className="font-bold text-white text-sm">{review.username || "Movie Fan"}</h4>
+                                            <span className="text-xs text-gray-500">{review.date || "Unknown Date"}</span>
+                                        </div>
+                                    </div>
 
-                        </div>
-                    ))
+                                    <div className="flex items-center gap-3">
+                                        {review.warning_spoilers && (
+                                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-red-500 bg-red-500/10 px-2 py-1 rounded border border-red-500/20">
+                                                <AlertTriangle size={12} /> Spoiler
+                                            </span>
+                                        )}
+
+                                        {review.rate && (
+                                            <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/20">
+                                                <Star size={14} fill="currentColor" />
+                                                <span className="font-bold text-sm">{review.rate}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                {review.title && <h5 className="font-bold text-gray-200 mb-2 text-base">{review.title}</h5>}
+                                
+                                <ExpandableText content={review.content} maxLength={300} />
+
+                            </div>
+                        ))}
+
+                        <Pagination 
+                            currentPage={reviewPage} 
+                            totalPages={totalReviewPages} 
+                            onPageChange={handleReviewPageChange} 
+                        />
+                    </>
                 ) : (
                     <div className="text-center py-10 text-gray-500 bg-gray-900/20 rounded-xl border border-dashed border-gray-800">
                         <MessageSquare className="mx-auto w-10 h-10 mb-3 opacity-30" />
